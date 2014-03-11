@@ -25,15 +25,43 @@ OFILE:	MOVE.B	#50,D0
 	TRAP	#15		; halt simulator
 SEARCH:	MOVE.L	D0,-(sp)	; implements binary search
 	MOVE.L	D1,-(sp)
-	MOVE.L	D2,-(sp)
+	MOVE.L	D2,-(sp)	; curlength
+	MOVE.L	D3,-(sp)
+	MOVE.L	20(sp),D1	; fileptr
+	MOVE.L	24(sp),D3	; searchnum		
 	MOVE.L	A1,-(sp)
-	MOVE.L	20(sp),D1
+	MOVE.L	A2,-(sp)
 	MOVE.L	LENGTH,D2
-	MOVE.L	#BUFFER,A1
+	MOVE.L	#BUFFER,A1	; bufptr
 	MOVE.B	#53,D0
 	TRAP	#15		; read file into buffer
-	
+BSRCH:	MOVE.B	(A1),D0
+	SUB.L	#48,D0
+	EXT.W	D0
+	EXT.L	D0
+	CMP.L	D0,D3
+	BEQ	FND
+	MOVE.L	A1,A2
+	DIVU	2,D2
+	ADD.L	D2,A2
+	MOVE.B	(A2),D0
+	SUB.L	#48,D0
+	EXT.W	D0
+	EXT.L	D0
+	CMP.L	D0,D3
+	BGT	CONT
+	MOVE.L	A2,A1	
+CONT:	BRA	BSRCH
+FND:	MOVE.L	#FOUND,A1
+	MOVE.B	#14,D0
+	TRAP	#15
+	BRA	CLENUP
+NFND:	MOVE.L	#NFOUND,A1
+	MOVE.B	#14,D0
+	TRAP	#15
+CLENUP:	MOVE.L	(sp)+,A2
 	MOVE.L	(sp)+,A1
+	MOVE.L	(sp)+,D3
 	MOVE.L	(sp)+,D2
 	MOVE.L	(sp)+,D1
 	MOVE.L	(sp)+,D0 	; restore stack			
